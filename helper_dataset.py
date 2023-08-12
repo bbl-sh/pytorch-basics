@@ -1,3 +1,4 @@
+import torch
 from torch.utils.data import sampler
 from torchvision import datasets
 from torch.utils.data import DataLoader
@@ -38,4 +39,22 @@ def helper_dataloader_mnist( train_transform = None, test_transform = None, num_
                               batch_size=batch_size,
                               num_workers=num_workers,
                               shuffle=False)
-  return train_loader, test_loader
+  validation_fraction = 0.1
+  num = int(validation_fraction * 60000)
+  train_indices = torch.arange(0, 60000 - num)
+  valid_indices = torch.arange(60000 - num, 60000)
+  train_sampler = SubsetRandomSampler(train_indices)
+  valid_sampler = SubsetRandomSampler(valid_indices)
+
+  valid_loader = DataLoader(dataset=valid_dataset,
+                            batch_size=batch_size,
+                            num_workers=num_workers,
+                            sampler=valid_sampler)
+
+  train_loader = DataLoader(dataset=train_dataset,
+                            batch_size=batch_size,
+                            num_workers=num_workers,
+                            drop_last=True,
+                            sampler=train_sampler)
+  
+  return train_loader, test_loader, valid_loader
